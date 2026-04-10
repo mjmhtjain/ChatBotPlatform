@@ -1,20 +1,27 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import api from '../lib/api'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    // TODO: replace with POST /api/auth/login
-    setTimeout(() => {
-      setLoading(false)
+    setError('')
+    try {
+      const { data } = await api.post('/api/auth/login', { email, password })
+      localStorage.setItem('access_token', data.access_token)
       navigate('/projects')
-    }, 600)
+    } catch {
+      setError('Invalid email or password.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -66,6 +73,10 @@ export default function LoginPage() {
                 className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
             </div>
+
+            {error && (
+              <p className="text-sm text-red-600 text-center">{error}</p>
+            )}
 
             <button
               type="submit"

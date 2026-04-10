@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import LoginPage from './LoginPage'
 
+vi.mock('../lib/api', () => ({
+  default: { post: vi.fn() },
+}))
+
+import api from '../lib/api'
+
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
@@ -20,6 +26,7 @@ function renderLoginPage() {
 
 afterEach(() => {
   mockNavigate.mockReset()
+  vi.mocked(api.post).mockReset()
 })
 
 describe('LoginPage', () => {
@@ -31,13 +38,14 @@ describe('LoginPage', () => {
   })
 
   it('shows a spinner and disables the button while submitting', async () => {
+    // Never resolves — keeps the spinner visible
+    vi.mocked(api.post).mockReturnValue(new Promise(() => {}))
     const user = userEvent.setup()
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
-
-    // Click but don't await further — spinner appears synchronously before the 600ms timer fires
+    await user.type(screen.getByLabelText(/password/i), 'password')
+    // Don't await — api.post never resolves, so we check loading state while it hangs
     user.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
@@ -46,17 +54,31 @@ describe('LoginPage', () => {
     })
   })
 
-  it('navigates to /projects after submit completes', async () => {
+  it('navigates to /projects on successful login', async () => {
+    vi.mocked(api.post).mockResolvedValue({ data: { access_token: 'test-token' } })
     const user = userEvent.setup()
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password123')
+    await user.type(screen.getByLabelText(/password/i), 'password')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
-    // Wait up to 2s for the 600ms setTimeout in LoginPage to fire
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/projects')
-    }, { timeout: 2000 })
+    })
+  })
+
+  it('shows an error message on failed login', async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error('Unauthorized'))
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
+    await user.type(screen.getByLabelText(/password/i), 'wrong')
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid email or password/i)).toBeInTheDocument()
+    })
   })
 })
