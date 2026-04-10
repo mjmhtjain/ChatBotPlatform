@@ -86,6 +86,18 @@ ChatBotPlatform/
 
 ---
 
+## Running Tests
+
+### Frontend
+
+```sh
+cd frontend
+npm test          # single run
+npm run test:watch  # watch mode
+```
+
+---
+
 ## Development Plan
 
-See [PLAN.md](PLAN.md) for the full architecture, data models, API design, and phased implementation roadmap.
+See [.doc/PLAN.md](.doc/PLAN.md) for the full architecture, data models, API design, and phased implementation roadmap.
