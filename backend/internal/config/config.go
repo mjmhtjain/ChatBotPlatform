@@ -11,7 +11,7 @@ type Config struct {
 
 func Load() Config {
 	return Config{
-		AdminEmail:    getEnv("ADMIN_EMAIL", "user"),
+		AdminEmail:    getEnv("ADMIN_EMAIL", "user@gmail.com"),
 		AdminPassword: getEnv("ADMIN_PASSWORD", "password"),
 		JWTSecret:     getEnv("JWT_SECRET", "dev-secret-change-in-prod"),
 		Port:          getEnv("PORT", "8080"),

@@ -7,6 +7,7 @@ import (
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/config"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/handlers"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/middleware"
+	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/router"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/services"
 )
 
@@ -19,13 +20,7 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.CORS("http://localhost:3000"))
 
-	api := r.Group("/api")
-	{
-		auth := api.Group("/auth")
-		{
-			auth.POST("/login", authHandler.Login)
-		}
-	}
+	router.Setup(r, authHandler)
 
 	log.Printf("Backend listening on :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
