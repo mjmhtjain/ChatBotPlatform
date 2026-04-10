@@ -18,13 +18,12 @@
 
 Location: `src/**/*.test.tsx` (co-located with the source file)
 
-Fast. Run on every save. Test one component or function in isolation.
+Fast. Run on every save. Test one component or function in isolation. HTTP calls are mocked at the module level (`vi.mock('../lib/api')`).
 
-| File | What to test |
-|------|-------------|
-| `src/pages/LoginPage.tsx` | Renders inputs and button; spinner on submit; navigates to `/projects` after success; HTML5 validation blocks empty submit |
-| `src/App.tsx` | Root `*` path redirects to `/login`; `/login` renders LoginPage; `/projects` renders ProjectsPage |
-| `src/pages/ProjectsPage.tsx` | Renders placeholder content (expand as page grows) |
+| File | What is tested |
+|------|----------------|
+| `src/pages/LoginPage.tsx` | Renders inputs and button; spinner + disabled button while submitting; navigates to `/projects` on success; shows error on bad credentials |
+| `src/App.tsx` | `/login` renders LoginPage; `*` redirects to `/login`; `/projects` renders ProjectsPage |
 
 As the app grows, add tests for:
 - `src/components/flow/FlowCanvas.tsx` — nodes render, edges connect
@@ -38,7 +37,7 @@ As the app grows, add tests for:
 Location: `tests/integration/*.test.tsx`
 
 Slower. Test a full feature across multiple components, real routing, and real stores.
-HTTP is intercepted by MSW — this tests the actual `api.ts` code, not mocks of it.
+HTTP is intercepted by MSW — tests the actual `api.ts` code, not mocks of it.
 
 | File | What to test |
 |------|-------------|
@@ -103,11 +102,11 @@ frontend/
 
 ## TODO
 
-- [ ] Install Vitest, RTL, jsdom, MSW
-- [ ] Configure Vitest in `vite.config.ts`
-- [ ] Add `npm run test` and `npm run test:e2e` scripts to `package.json`
-- [ ] Write unit tests for `LoginPage`
-- [ ] Write unit tests for `App` router
+- [x] Install Vitest, RTL, jsdom
+- [x] Configure Vitest in `vite.config.ts`
+- [x] Add `npm run test` and `npm run test:watch` scripts to `package.json`
+- [x] Write unit tests for `LoginPage`
+- [x] Write unit tests for `App` router
 - [ ] Set up MSW handlers for `/api/auth/login` and `/api/auth/refresh`
 - [ ] Write integration test for login flow
 - [ ] Install and configure Playwright

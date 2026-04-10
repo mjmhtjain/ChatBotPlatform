@@ -7,7 +7,7 @@ A web application for building, testing, and publishing chatbot flows.
 | Component | Status |
 |-----------|--------|
 | Frontend (login page) | Done |
-| Backend (Go + Gin) | Planned |
+| Backend (Go + Gin, login endpoint) | Done |
 | Database (PostgreSQL) | Planned |
 
 ---
@@ -30,18 +30,18 @@ cd ChatBotPlatform
 ### 2. Set up environment variables
 
 ```sh
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
-The defaults in `.env.example` work for local development. No changes needed to run the frontend.
+Edit `backend/.env` with your credentials. The defaults work for local development.
 
-### 3. Start the frontend
+### 3. Start the application
 
 ```sh
 docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. You will see the login page.
+Open [http://localhost:3000](http://localhost:3000). Log in with the credentials from `backend/.env`.
 
 To run in the background:
 
@@ -59,18 +59,16 @@ docker compose down
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `FRONTEND_PORT` | `3000` | Port the frontend is served on |
-| `BACKEND_PORT` | `8080` | Port the backend API listens on (not yet built) |
-| `POSTGRES_DB` | `chatbot` | PostgreSQL database name |
-| `POSTGRES_USER` | `chatbot` | PostgreSQL user |
-| `POSTGRES_PASSWORD` | `chatbot` | PostgreSQL password |
-| `JWT_SECRET` | — | Secret for signing JWT tokens |
-| `ADMIN_EMAIL` | `admin@example.com` | Seeded admin user email |
-| `ADMIN_PASSWORD` | `admin123` | Seeded admin user password |
-| `ADMIN_NAME` | `Admin` | Seeded admin user display name |
-| `VITE_API_BASE_URL` | `http://localhost:8080` | Backend API URL used by the frontend |
+All backend config lives in `backend/.env` (gitignored). Use `backend/.env.example` as the template.
+
+| Variable | Description |
+|----------|-------------|
+| `PORT` | Port the backend API listens on (default: `8080`) |
+| `ADMIN_EMAIL` | Admin user email for login |
+| `ADMIN_PASSWORD` | Admin user password for login |
+| `JWT_SECRET` | Secret for signing JWT tokens |
+| `FRONTEND_PORT` | Port the frontend is served on (default: `3000`) |
+| `BACKEND_PORT` | Port the backend is exposed on (default: `8080`) |
 
 ---
 
@@ -78,10 +76,25 @@ docker compose down
 
 ```
 ChatBotPlatform/
-  docker-compose.yml      # Service orchestration
-  .env.example            # Environment variable template
-  frontend/               # React + TypeScript + Vite app (served by nginx)
-  backend/                # Go + Gin API (coming soon)
+  docker-compose.yml
+  backend/                    # Go + Gin API
+    .env.example
+    .env                      # local only, gitignored
+    Dockerfile
+    cmd/main.go               # entry point
+    internal/
+      config/                 # env var loading
+      handlers/               # HTTP handlers
+      middleware/             # CORS
+      router/                 # route registration
+      services/               # business logic (auth, JWT)
+  frontend/                   # React + TypeScript + Vite (served by nginx)
+    .doc/                     # frontend-specific docs
+    Dockerfile
+    src/
+      pages/
+      lib/
+      store/
 ```
 
 ---
@@ -92,8 +105,14 @@ ChatBotPlatform/
 
 ```sh
 cd frontend
-npm test          # single run
-npm run test:watch  # watch mode
+npm test
+```
+
+### Backend
+
+```sh
+cd backend
+go test ./...
 ```
 
 ---
