@@ -35,4 +35,9 @@ describe('getInitials', () => {
   it('returns ? for an empty string', () => {
     expect(getInitials('')).toBe('?')
   })
+
+  it('returns two letters from a long single-segment local part', () => {
+    const token = makeToken({ email: 'nathan@example.com' })
+    expect(getInitials(token)).toBe('NA')
+  })
 })
