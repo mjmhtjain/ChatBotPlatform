@@ -9,14 +9,13 @@ export default function TopBar() {
   const initials = getInitials(localStorage.getItem('access_token') ?? '')
 
   useEffect(() => {
+    if (!showMenu) return
     function handleOutsideClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowMenu(false)
       }
     }
-    if (showMenu) {
-      document.addEventListener('mousedown', handleOutsideClick)
-    }
+    document.addEventListener('mousedown', handleOutsideClick)
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [showMenu])
 
@@ -34,6 +33,8 @@ export default function TopBar() {
       <div className="relative" ref={menuRef}>
         <button
           aria-label="User menu"
+          aria-expanded={showMenu}
+          aria-haspopup="true"
           onClick={() => setShowMenu(v => !v)}
           className="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 text-slate-300 text-xs font-semibold flex items-center justify-center hover:bg-slate-600 transition-colors"
         >
