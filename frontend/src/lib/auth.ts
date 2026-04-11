@@ -1,7 +1,8 @@
 /**
  * Decodes a JWT (without verifying signature) and derives 1-2 uppercase
- * initials from the email claim in the payload.
- * Returns '?' if decoding fails or the email claim is absent.
+ * initials from an email address found in the payload.
+ * Checks `email` claim first, then falls back to `sub` (which may contain an email).
+ * Returns '?' if decoding fails or no usable email claim is found.
  *
  * Initials derivation rules:
  * - Multi-segment local parts (john.doe, john-doe): first letter of each segment, up to 2
@@ -11,8 +12,8 @@
 export function getInitials(token: string): string {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]))
-    const email: string | undefined = payload.email
-    if (!email) return '?'
+    const email: string | undefined = payload.email ?? payload.sub
+    if (!email || !email.includes('@')) return '?'
     const local = email.split('@')[0]
     const parts = local.split(/[^a-zA-Z]+/).filter(Boolean)
 
