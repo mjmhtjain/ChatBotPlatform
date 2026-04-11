@@ -3,3 +3,10 @@ dist/
 .env
 *.local
 coverage/
+
+
+# claude settings
+.claude/*
+docs/*
+.superpowers/
+.doc/*

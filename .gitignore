@@ -34,3 +34,5 @@ go.work.sum
 # claude settings
 .claude/*
 docs/*
+.superpowers/
+.doc/*

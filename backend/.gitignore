@@ -1,3 +1,10 @@
 server
 *.exe
 .env
+
+
+# claude settings
+.claude/*
+docs/*
+.superpowers/
+.doc/*
