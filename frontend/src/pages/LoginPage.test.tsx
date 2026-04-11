@@ -33,7 +33,7 @@ describe('LoginPage', () => {
   it('renders email input, password input, and sign-in button', () => {
     renderLoginPage()
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+    expect(screen.getByLabelText('Password')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
@@ -44,13 +44,13 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password')
+    await user.type(screen.getByLabelText('Password'), 'password')
     // Don't await — api.post never resolves, so we check loading state while it hangs
     user.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/signing in/i)).toBeInTheDocument()
-      expect(screen.getByRole('button')).toBeDisabled()
+      expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
     })
   })
 
@@ -60,7 +60,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'password')
+    await user.type(screen.getByLabelText('Password'), 'password')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
@@ -74,7 +74,7 @@ describe('LoginPage', () => {
     renderLoginPage()
 
     await user.type(screen.getByLabelText(/email/i), 'admin@example.com')
-    await user.type(screen.getByLabelText(/password/i), 'wrong')
+    await user.type(screen.getByLabelText('Password'), 'wrong')
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
     await waitFor(() => {
