@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getInitials } from './auth'
+import { getInitials, getEmail } from './auth'
 
 // Helper: build a minimal fake JWT with the given payload
 function makeToken(payload: object): string {
@@ -39,5 +39,35 @@ describe('getInitials', () => {
   it('returns two letters from a long single-segment local part', () => {
     const token = makeToken({ email: 'nathan@example.com' })
     expect(getInitials(token)).toBe('NA')
+  })
+
+  it('derives initials from sub claim when email claim is absent', () => {
+    const token = makeToken({ sub: 'user@example.com' })
+    expect(getInitials(token)).toBe('U')
+  })
+})
+
+describe('getEmail', () => {
+  it('returns the email claim when present', () => {
+    const token = makeToken({ email: 'john.doe@example.com' })
+    expect(getEmail(token)).toBe('john.doe@example.com')
+  })
+
+  it('falls back to sub claim when email is absent', () => {
+    const token = makeToken({ sub: 'user@example.com' })
+    expect(getEmail(token)).toBe('user@example.com')
+  })
+
+  it('returns null when sub is not an email', () => {
+    const token = makeToken({ sub: 'user-123' })
+    expect(getEmail(token)).toBeNull()
+  })
+
+  it('returns null for a malformed token', () => {
+    expect(getEmail('not.a.jwt')).toBeNull()
+  })
+
+  it('returns null for an empty string', () => {
+    expect(getEmail('')).toBeNull()
   })
 })

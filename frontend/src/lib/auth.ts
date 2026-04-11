@@ -41,3 +41,19 @@ export function getInitials(token: string): string {
     return '?'
   }
 }
+
+/**
+ * Decodes a JWT (without verifying signature) and returns the email address
+ * from the payload. Checks `email` claim first, then falls back to `sub`.
+ * Returns null if decoding fails or no usable email is found.
+ */
+export function getEmail(token: string): string | null {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const email: string | undefined = payload.email ?? payload.sub
+    if (!email || !email.includes('@')) return null
+    return email
+  } catch {
+    return null
+  }
+}

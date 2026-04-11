@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getInitials } from '../../lib/auth'
+import { getInitials, getEmail } from '../../lib/auth'
 
 export default function TopBar() {
   const navigate = useNavigate()
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-  const initials = getInitials(localStorage.getItem('access_token') ?? '')
+  const token = localStorage.getItem('access_token') ?? ''
+  const initials = getInitials(token)
+  const email = getEmail(token)
 
   useEffect(() => {
     if (!showMenu) return
@@ -46,6 +48,11 @@ export default function TopBar() {
             role="menu"
             className="absolute right-0 top-11 w-44 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50"
           >
+            {email && (
+              <div className="px-4 py-2.5 border-b border-gray-100">
+                <p className="text-xs text-gray-400 truncate">{email}</p>
+              </div>
+            )}
             <button
               role="menuitem"
               aria-label="Profile"

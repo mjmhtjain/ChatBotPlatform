@@ -1,7 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { AppRoutes } from './App'
+
+vi.mock('./lib/api', () => ({
+  default: { get: vi.fn(() => new Promise(() => {})), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}))
+
+vi.mock('./components/layout/TopBar', () => ({
+  default: () => <div data-testid="topbar" />,
+}))
 
 function renderAt(path: string) {
   return render(

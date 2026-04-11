@@ -4,9 +4,10 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import TopBar from './TopBar'
 
-// Mock getInitials so tests don't depend on real JWT decoding
+// Mock auth utils so tests don't depend on real JWT decoding
 vi.mock('../../lib/auth', () => ({
   getInitials: vi.fn(() => 'MJ'),
+  getEmail: vi.fn(() => 'user@example.com'),
 }))
 
 const mockNavigate = vi.fn()
@@ -83,5 +84,12 @@ describe('TopBar', () => {
     await user.click(screen.getByRole('button', { name: /user menu/i }))
     await user.click(screen.getByRole('menuitem', { name: /profile/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/profile')
+  })
+
+  it('shows the email address in the dropdown header', async () => {
+    const user = userEvent.setup()
+    renderTopBar()
+    await user.click(screen.getByRole('button', { name: /user menu/i }))
+    expect(screen.getByText('user@example.com')).toBeInTheDocument()
   })
 })
