@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/config"
+	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/database"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/handlers"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/middleware"
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/router"
@@ -14,13 +15,21 @@ import (
 func main() {
 	cfg := config.Load()
 
+	db, err := database.Connect(cfg)
+	if err != nil {
+		log.Fatalf("database error: %v", err)
+	}
+
 	authSvc := services.NewAuthService(cfg.AdminEmail, cfg.AdminPassword, cfg.JWTSecret)
 	authHandler := handlers.NewAuthHandler(authSvc)
+
+	projectSvc := services.NewProjectService(db)
+	projectHandler := handlers.NewProjectHandler(projectSvc)
 
 	r := gin.Default()
 	r.Use(middleware.CORS("http://localhost:3000"))
 
-	router.Setup(r, authHandler)
+	router.Setup(r, authHandler, projectHandler, cfg.JWTSecret)
 
 	log.Printf("Backend listening on :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
