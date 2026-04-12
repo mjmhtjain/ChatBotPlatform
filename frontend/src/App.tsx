@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import ProjectsPage from './pages/ProjectsPage'
+import ProjectDetailPage from './pages/ProjectDetailPage'
+import FlowEditorPage from './pages/FlowEditorPage'
 import Layout from './components/layout/Layout'
 
 export function AppRoutes() {
@@ -8,6 +10,8 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/projects" element={<Layout><ProjectsPage /></Layout>} />
+      <Route path="/projects/:projectId" element={<Layout><ProjectDetailPage /></Layout>} />
+      <Route path="/projects/:projectId/flows/:flowId" element={<FlowEditorPage />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
