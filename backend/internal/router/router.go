@@ -6,7 +6,7 @@ import (
 	"github.com/mjmhtjain/ChatBotPlatform/backend/internal/middleware"
 )
 
-func Setup(r *gin.Engine, authHandler *handlers.AuthHandler, projectHandler *handlers.ProjectHandler, jwtSecret string) {
+func Setup(r *gin.Engine, authHandler *handlers.AuthHandler, projectHandler *handlers.ProjectHandler, flowHandler *handlers.FlowHandler, jwtSecret string) {
 	api := r.Group("/api")
 	{
 		auth := api.Group("/auth")
@@ -23,6 +23,15 @@ func Setup(r *gin.Engine, authHandler *handlers.AuthHandler, projectHandler *han
 				projects.POST("", projectHandler.Create)
 				projects.PATCH("/:id", projectHandler.Rename)
 				projects.DELETE("/:id", projectHandler.Delete)
+
+				flows := projects.Group("/:projectId/flows")
+				{
+					flows.GET("", flowHandler.List)
+					flows.POST("", flowHandler.Create)
+					flows.GET("/:flowId", flowHandler.Get)
+					flows.PUT("/:flowId", flowHandler.Update)
+					flows.DELETE("/:flowId", flowHandler.Delete)
+				}
 			}
 		}
 	}

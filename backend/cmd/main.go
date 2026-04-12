@@ -26,10 +26,13 @@ func main() {
 	projectSvc := services.NewProjectService(db)
 	projectHandler := handlers.NewProjectHandler(projectSvc)
 
+	flowSvc := services.NewFlowService(db)
+	flowHandler := handlers.NewFlowHandler(flowSvc)
+
 	r := gin.Default()
 	r.Use(middleware.CORS("http://localhost:3000"))
 
-	router.Setup(r, authHandler, projectHandler, cfg.JWTSecret)
+	router.Setup(r, authHandler, projectHandler, flowHandler, cfg.JWTSecret)
 
 	log.Printf("Backend listening on :%s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
