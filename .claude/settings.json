@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(gh:*)"
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@superpowers-dev": true
+  }
+}
