@@ -135,13 +135,13 @@
             "matchers": [
               {
                 "match": "regex",
-                "regex": "/api/projects/test-project-id"
+                "regex": "/api/projects/[\\w-]+"
               }
             ]
           }
         },
         "method": "DELETE",
-        "path": "/api/projects/[\\w-]+"
+        "path": "/api/projects/test-project-id"
       },
       "response": {
         "status": 204
@@ -213,13 +213,13 @@
             "matchers": [
               {
                 "match": "regex",
-                "regex": "/api/projects/test-project-id"
+                "regex": "/api/projects/[\\w-]+"
               }
             ]
           }
         },
         "method": "PATCH",
-        "path": "/api/projects/[\\w-]+"
+        "path": "/api/projects/test-project-id"
       },
       "response": {
         "body": {

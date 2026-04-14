@@ -131,7 +131,7 @@ describe('PATCH /api/projects/:id', () => {
       .uponReceiving('a request to rename a project')
       .withRequest({
         method: 'PATCH',
-        path: regex('/api/projects/test-project-id', '/api/projects/[\\w-]+'),
+        path: regex('/api/projects/[\\w-]+', '/api/projects/test-project-id'),
         headers: { ...AUTH_HEADER, 'Content-Type': 'application/json' },
         body: { name: 'Renamed Project' },
       })
@@ -165,7 +165,7 @@ describe('DELETE /api/projects/:id', () => {
       .uponReceiving('a request to delete a project')
       .withRequest({
         method: 'DELETE',
-        path: regex('/api/projects/test-project-id', '/api/projects/[\\w-]+'),
+        path: regex('/api/projects/[\\w-]+', '/api/projects/test-project-id'),
         headers: AUTH_HEADER,
       })
       .willRespondWith({ status: 204 })
