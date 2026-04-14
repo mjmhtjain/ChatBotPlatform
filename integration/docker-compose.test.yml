@@ -22,6 +22,7 @@ services:
       ADMIN_EMAIL: user@gmail.com
       ADMIN_PASSWORD: password
       JWT_SECRET: test-secret
+      CORS_ORIGIN: http://localhost:3001
       POSTGRES_HOST: postgres-test
       POSTGRES_PORT: 5432
       POSTGRES_USER: chatbot_test
