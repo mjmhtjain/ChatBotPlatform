@@ -40,7 +40,7 @@ go build ./cmd/...                               # compile check
 
 ## Architecture
 
-Two services managed by Docker Compose: a React/Vite frontend (nginx, port 3000) and a Go/Gin backend (port 8080). PostgreSQL is the third Docker Compose service.
+Three first-class directories: `backend/` (Go/Gin API), `frontend/` (React/Vite), and `integration/` (Pact contract tests + Playwright E2E). Docker Compose runs the app on ports 8080 (backend) and 3000 (frontend). A separate `docker-compose.test.yml` in `integration/` runs a test stack on isolated ports (5433/8081/3001).
 
 ### Auth & Ownership Model
 
@@ -54,15 +54,15 @@ Two services managed by Docker Compose: a React/Vite frontend (nginx, port 3000)
 
 **Module:** `github.com/mjmhtjain/ChatBotPlatform/backend`  
 **Wiring:** `config.Load()` → `database.Connect()` → services → handlers → `router.Setup()` → `r.Run()`  
-**Key deps:** `gin v1.10.0` (pinned — v1.12+ requires Go ≥1.25, project uses Go 1.24), `golang-jwt/jwt v5`, `gorm v1.31.1`, `gorm/driver/postgres`, `google/uuid`
+**Key deps:** `gin v1.10.0` (pinned — v1.12+ requires Go ≥1.25, project uses Go 1.24), `golang-jwt/jwt v5`, `gorm v1.31.1`, `gorm/driver/postgres`, `google/uuid`, `pact-go/v2 v2.4.2` (for provider contract tests, requires CGO_ENABLED=1)
 
 **File map:**
-- `cmd/main.go` — wires config → DB → services → handlers → router; CORS middleware applied globally for `http://localhost:3000`
-- `internal/config/config.go` — reads env vars into `Config`; all fields have safe local-dev defaults
+- `cmd/main.go` — wires config → DB → services → handlers → router; CORS origin read from `cfg.CORSOrigin`
+- `internal/config/config.go` — reads env vars into `Config`; includes `CORSOrigin` (default `http://localhost:3000`), `Port` (default `8080`), and all Postgres params
 - `internal/database/db.go` — opens PostgreSQL via GORM, runs `AutoMigrate(&Project{}, &Flow{})`
-- `internal/models/project.go` — `Project{ID, Name, OwnerEmail, CreatedAt, UpdatedAt}`; UUID assigned in `BeforeCreate`; unique index on `(owner_email, name)`
+- `internal/models/project.go` — `Project{ID, Name, OwnerEmail, CreatedAt, UpdatedAt}`; `BeforeCreate` assigns UUID only if ID is empty (allows deterministic test seeding); unique index on `(owner_email, name)`
 - `internal/models/flow.go` — `Flow{ID, ProjectID, Name, Data RawJSON, CreatedAt, UpdatedAt}`; unique index on `(project_id, name)`; `RawJSON` is `[]byte` with `driver.Valuer`/`sql.Scanner`/`json.Marshaler` for JSONB pass-through
-- `internal/middleware/cors.go` — sets CORS headers for `http://localhost:3000`, handles OPTIONS preflight
+- `internal/middleware/cors.go` — `CORS(allowedOrigin string)` sets CORS headers for the configured origin; handles OPTIONS preflight
 - `internal/middleware/auth.go` — validates Bearer JWT, sets `owner_email` in Gin context
 - `internal/services/auth.go` — plain-string credential compare + `jwt.NewWithClaims`; `sub` claim = email
 - `internal/services/project.go` — `List/Create/Rename/Delete`; `isDuplicate()` helper used by both project and flow services
@@ -88,6 +88,8 @@ DELETE /api/projects/:id/flows/:flowId         (auth)    delete flow
 
 **Error conventions:** `ErrFlowNotFound`, `ErrFlowDuplicateName` in `services/flow.go`; service sentinel errors mapped to HTTP status in handlers  
 **Tests:** `handlers/*_test.go` use `net/http/httptest` + real Gin router in `gin.TestMode`; mock services use function-field structs (e.g. `mockFlowService{listFn: ...}`); `doRequest()` helper defined in `project_test.go` and reused in `flow_test.go`
+
+**Pact provider tests:** `tests/pact/provider_test.go` — verifies all consumer interactions against a real backend + real Postgres; uses `StateHandlers` (in `models` package) and a `RequestFilter` that injects a valid JWT into every provider request; run with `CGO_ENABLED=1` (pact-go/v2 uses Rust FFI)
 
 **Adding a new route group:** add the handler struct as a parameter to `router.Setup()`, register routes there. Do not put routes in `main.go`.
 
@@ -121,11 +123,25 @@ DELETE /api/projects/:id/flows/:flowId         (auth)    delete flow
 - `components/flow-editor/MessageNode.tsx` — custom node: target handle (top) + source handle (bottom); shows `data.message` or italic placeholder; indigo border when selected
 - `components/flow-editor/NodeConfigPanel.tsx` — right panel; renders config form for selected node type (messageNode: textarea); returns null if no node selected
 
-**Tests:** mock `../lib/api` with `vi.mock`; email inputs are `type="email"` — jsdom enforces HTML5 validation, use `admin@example.com` format not bare strings
+**Tests:** mock `../lib/api` with `vi.mock`; email inputs are `type="email"` — jsdom enforces HTML5 validation, use `admin@example.com` format not bare strings; `ProjectCard` uses `useNavigate()` so all tests that render it must wrap in `MemoryRouter`
+
+### Integration (`integration/`)
+
+Standalone test package. Run from `integration/` directory.
+
+**File map:**
+- `Makefile` — `make test` runs Pact then Playwright (fail-fast); `make test-pact` / `make test-e2e` run layers independently
+- `docker-compose.test.yml` — isolated test stack on ports 5433 (postgres), 8081 (backend), 3001 (frontend) with healthchecks
+- `pact/consumer/api.pact.test.ts` — 6 PactV3 consumer interactions (TypeScript/Vitest) covering all 5 API endpoints; generates `pact/pacts/frontend-backend.json`
+- `pact/pacts/frontend-backend.json` — committed contract file (living spec); consumed by Go provider tests
+- `e2e/login.spec.ts` — 3 Playwright login E2E tests; uses `locator('#password')` to avoid strict-mode conflict with "Show password" button
+- `e2e/projects.spec.ts` — 4 Playwright projects CRUD E2E tests; selects via `data-testid="project-card"` and `data-testid="modal-overlay"`
+- `playwright.config.ts` — baseURL `http://localhost:3001`, `expect.timeout: 10000`
+- `vitest.config.ts` — config for Pact consumer tests (TypeScript)
 
 ### Environment
 
-Backend config from `backend/.env` (gitignored). Docker Compose injects via `env_file: ./backend/.env`. `.env.example` is the committed template. `VITE_API_BASE_URL` is baked into the frontend at `npm run build`.
+Backend config from `backend/.env` (gitignored). Docker Compose injects via `env_file: ./backend/.env`. `.env.example` is the committed template. `VITE_API_BASE_URL` is baked into the frontend at `npm run build`. `CORS_ORIGIN` env var controls the allowed CORS origin (default `http://localhost:3000`; integration tests set it to `http://localhost:3001`).
 
 ---
 
@@ -141,6 +157,12 @@ Backend config from `backend/.env` (gitignored). Docker Compose injects via `env
 - **`AppRoutes` vs `App`** — tests import `AppRoutes` with a `MemoryRouter`; `App` is the browser entry point with `BrowserRouter`.
 - **jsdom email validation** — `type="email"` inputs reject bare strings like `user`; tests must use valid emails like `admin@example.com`.
 - **`doRequest()` helper is in `project_test.go`** — flow tests reuse it because both files are in `package handlers`; don't duplicate it.
+- **`ProjectCard` uses `useNavigate()`** — any test that renders `ProjectCard` must wrap it in `MemoryRouter` or use a test router; added in Phase 2, caught when Phase 3 added navigation.
+- **Pact provider tests require `CGO_ENABLED=1`** — `pact-go/v2` uses Rust FFI via cgo; running without it produces a build error. The Makefile sets this automatically.
+- **`Project.BeforeCreate` preserves existing IDs** — guards `if p.ID == ""` so Pact provider state handlers can seed deterministic UUIDs for contract replay.
+- **CORS origin is env-configurable** — `CORS_ORIGIN` env var; default `http://localhost:3000` for dev, set to `http://localhost:3001` in test stack. Hardcoding the origin causes Playwright tests to fail when the test frontend runs on a different port.
+- **Pact contract JSON is committed** — `integration/pact/pacts/frontend-backend.json` is the source of truth for the API contract; consumer runs first to regenerate it, then provider verifies against it.
+- **Playwright login uses `locator('#password')`** — `getByLabel('Password')` hits strict-mode violation because the label also matches a "Show password" toggle button.
 
 ---
 
@@ -151,4 +173,5 @@ Backend config from `backend/.env` (gitignored). Docker Compose injects via `env
 | Phase 1 — Auth | Complete | Login with hardcoded env-var credentials, JWT issued, stored in localStorage |
 | Phase 2 — Projects CRUD | Complete | PostgreSQL + GORM, project model, full REST API, owner-scoped, handler tests |
 | Phase 3 — Flow Builder | Complete | Flow CRUD per project, React Flow canvas editor, Message Node, JSONB persistence |
-| Phase 4 — Additional Nodes & Endpoint | Not started | More node types, chatbot endpoint integration/testing |
+| Phase 4 — Integration Tests | Complete | Pact contract tests (consumer TypeScript + provider Go), Playwright E2E for login and projects CRUD, fail-fast Makefile, isolated test Docker stack |
+| Phase 5 — Additional Nodes & Endpoint | Not started | More node types, chatbot endpoint integration/testing |
