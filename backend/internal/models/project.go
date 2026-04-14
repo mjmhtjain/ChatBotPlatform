@@ -16,6 +16,8 @@ type Project struct {
 }
 
 func (p *Project) BeforeCreate(_ *gorm.DB) error {
-	p.ID = uuid.New().String()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
+	}
 	return nil
 }
