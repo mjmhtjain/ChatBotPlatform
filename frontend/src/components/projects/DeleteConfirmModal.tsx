@@ -26,7 +26,7 @@ export default function DeleteConfirmModal({ project, onClose, onDeleted }: Prop
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div data-testid="modal-overlay" className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Delete Project</h2>
         <p className="text-sm text-gray-600 mb-6">

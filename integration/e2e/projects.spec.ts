@@ -15,7 +15,7 @@ async function createProject(page: Page, name: string) {
   await page.getByLabel('Project name').fill(name)
   await page.getByRole('button', { name: 'Create' }).click()
   // Wait for the modal overlay to disappear
-  await expect(page.locator('.fixed.inset-0')).not.toBeAttached()
+  await expect(page.locator('[data-testid="modal-overlay"]')).not.toBeAttached()
   await expect(page.getByText(name)).toBeVisible()
 }
 
@@ -33,6 +33,7 @@ test('create project → card appears in list', async ({ page }) => {
   await page.getByRole('button', { name: /new project/i }).click()
   await page.getByLabel('Project name').fill(name)
   await page.getByRole('button', { name: 'Create' }).click()
+  await expect(page.locator('[data-testid="modal-overlay"]')).not.toBeAttached()
   await expect(page.getByText(name)).toBeVisible()
 })
 
@@ -44,7 +45,7 @@ test('rename project → card shows new name', async ({ page }) => {
   await createProject(page, beforeName)
 
   // Hover to reveal rename button, then click (scoped to this card)
-  const card = page.locator('[class*="group"]').filter({ hasText: beforeName })
+  const card = page.locator('[data-testid="project-card"]').filter({ hasText: beforeName })
   await card.hover()
   await card.getByLabel('Rename project').click()
 
@@ -64,7 +65,7 @@ test('delete project → card removed from list', async ({ page }) => {
   await createProject(page, name)
 
   // Hover to reveal delete button, then click (scoped to this card)
-  const card = page.locator('[class*="group"]').filter({ hasText: name })
+  const card = page.locator('[data-testid="project-card"]').filter({ hasText: name })
   await card.hover()
   await card.getByLabel('Delete project').click()
 
@@ -72,7 +73,7 @@ test('delete project → card removed from list', async ({ page }) => {
   await page.getByRole('button', { name: 'Delete', exact: true }).click()
 
   // Wait for the modal to close, then verify card is gone
-  await expect(page.locator('.fixed.inset-0')).not.toBeAttached()
+  await expect(page.locator('[data-testid="modal-overlay"]')).not.toBeAttached()
   await expect(page.getByText(name)).not.toBeVisible()
 })
 

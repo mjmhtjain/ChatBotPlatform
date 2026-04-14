@@ -6,4 +6,7 @@ export default defineConfig({
     baseURL: 'http://localhost:3001',
   },
   timeout: 30000,
+  expect: {
+    timeout: 10000,
+  },
 })
