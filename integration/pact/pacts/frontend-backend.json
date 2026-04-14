@@ -1,0 +1,334 @@
+{
+  "consumer": {
+    "name": "frontend"
+  },
+  "interactions": [
+    {
+      "description": "a login request with wrong password",
+      "providerStates": [
+        {
+          "name": "valid credentials exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "email": "user@gmail.com",
+          "password": "wrongpassword"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/auth/login"
+      },
+      "response": {
+        "status": 401
+      }
+    },
+    {
+      "description": "a request to create a project",
+      "providerStates": [
+        {
+          "name": "user has no projects"
+        }
+      ],
+      "request": {
+        "body": {
+          "name": "My Project"
+        },
+        "headers": {
+          "Authorization": "Bearer some-jwt-token",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/projects"
+      },
+      "response": {
+        "body": {
+          "created_at": "2024-01-01T00:00:00Z",
+          "id": "some-uuid",
+          "name": "My Project",
+          "owner_email": "user@gmail.com",
+          "updated_at": "2024-01-01T00:00:00Z"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.owner_email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.updated_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 201
+      }
+    },
+    {
+      "description": "a request to delete a project",
+      "providerStates": [
+        {
+          "name": "user has one project"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer some-jwt-token"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "/api/projects/test-project-id"
+              }
+            ]
+          }
+        },
+        "method": "DELETE",
+        "path": "/api/projects/[\\w-]+"
+      },
+      "response": {
+        "status": 204
+      }
+    },
+    {
+      "description": "a request to list projects",
+      "providerStates": [
+        {
+          "name": "user has no projects"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer some-jwt-token"
+        },
+        "matchingRules": {
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "GET",
+        "path": "/api/projects"
+      },
+      "response": {
+        "body": [],
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to rename a project",
+      "providerStates": [
+        {
+          "name": "user has one project"
+        }
+      ],
+      "request": {
+        "body": {
+          "name": "Renamed Project"
+        },
+        "headers": {
+          "Authorization": "Bearer some-jwt-token",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Authorization": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "/api/projects/test-project-id"
+              }
+            ]
+          }
+        },
+        "method": "PATCH",
+        "path": "/api/projects/[\\w-]+"
+      },
+      "response": {
+        "body": {
+          "created_at": "2024-01-01T00:00:00Z",
+          "id": "some-uuid",
+          "name": "Renamed Project",
+          "owner_email": "user@gmail.com",
+          "updated_at": "2024-01-01T00:00:00Z"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.created_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.owner_email": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.updated_at": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a valid login request",
+      "providerStates": [
+        {
+          "name": "valid credentials exist"
+        }
+      ],
+      "request": {
+        "body": {
+          "email": "user@gmail.com",
+          "password": "password"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/auth/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "some-jwt-token"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.access_token": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {},
+          "status": {}
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "13.2.0"
+    },
+    "pactRust": {
+      "ffi": "0.4.22",
+      "models": "1.2.3"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "backend"
+  }
+}
