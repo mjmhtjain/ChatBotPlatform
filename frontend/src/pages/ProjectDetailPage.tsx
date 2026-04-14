@@ -17,6 +17,17 @@ export default function ProjectDetailPage() {
   return (
     <div className="bg-gray-50 flex-1">
       <div className="max-w-6xl mx-auto px-6 py-10">
+        {/* Back */}
+        <button
+          onClick={() => navigate('/projects')}
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          All Projects
+        </button>
+
         {/* Tabs */}
         <div className="flex gap-1 border-b border-gray-200 mb-8">
           {(['flow', 'endpoint'] as Tab[]).map(tab => (
