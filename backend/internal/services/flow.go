@@ -90,7 +90,9 @@ func (s *FlowService) Update(ownerEmail, projectID, flowID, name string, data mo
 		return nil, err
 	}
 	f.Name = name
-	f.Data = data
+	if data != nil {
+		f.Data = data
+	}
 	if err := s.db.Save(&f).Error; err != nil {
 		if isDuplicate(err) {
 			return nil, ErrFlowDuplicateName
