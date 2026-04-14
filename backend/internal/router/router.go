@@ -24,7 +24,7 @@ func Setup(r *gin.Engine, authHandler *handlers.AuthHandler, projectHandler *han
 				projects.PATCH("/:id", projectHandler.Rename)
 				projects.DELETE("/:id", projectHandler.Delete)
 
-				flows := projects.Group("/:projectId/flows")
+				flows := projects.Group("/:id/flows")
 				{
 					flows.GET("", flowHandler.List)
 					flows.POST("", flowHandler.Create)

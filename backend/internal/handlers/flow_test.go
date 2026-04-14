@@ -41,11 +41,11 @@ func newFlowTestRouter(svc FlowServicer) *gin.Engine {
 		c.Set("owner_email", "admin@example.com")
 		c.Next()
 	})
-	r.GET("/api/projects/:projectId/flows", h.List)
-	r.POST("/api/projects/:projectId/flows", h.Create)
-	r.GET("/api/projects/:projectId/flows/:flowId", h.Get)
-	r.PUT("/api/projects/:projectId/flows/:flowId", h.Update)
-	r.DELETE("/api/projects/:projectId/flows/:flowId", h.Delete)
+	r.GET("/api/projects/:id/flows", h.List)
+	r.POST("/api/projects/:id/flows", h.Create)
+	r.GET("/api/projects/:id/flows/:flowId", h.Get)
+	r.PUT("/api/projects/:id/flows/:flowId", h.Update)
+	r.DELETE("/api/projects/:id/flows/:flowId", h.Delete)
 	return r
 }
 

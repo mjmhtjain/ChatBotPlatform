@@ -37,7 +37,7 @@ type updateFlowRequest struct {
 
 func (h *FlowHandler) List(c *gin.Context) {
 	ownerEmail := c.GetString("owner_email")
-	projectID := c.Param("projectId")
+	projectID := c.Param("id")
 	flows, err := h.svc.List(ownerEmail, projectID)
 	if err != nil {
 		if errors.Is(err, services.ErrFlowNotFound) {
@@ -52,7 +52,7 @@ func (h *FlowHandler) List(c *gin.Context) {
 
 func (h *FlowHandler) Create(c *gin.Context) {
 	ownerEmail := c.GetString("owner_email")
-	projectID := c.Param("projectId")
+	projectID := c.Param("id")
 	var req createFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
@@ -76,7 +76,7 @@ func (h *FlowHandler) Create(c *gin.Context) {
 
 func (h *FlowHandler) Get(c *gin.Context) {
 	ownerEmail := c.GetString("owner_email")
-	projectID := c.Param("projectId")
+	projectID := c.Param("id")
 	flowID := c.Param("flowId")
 	f, err := h.svc.Get(ownerEmail, projectID, flowID)
 	if err != nil {
@@ -92,7 +92,7 @@ func (h *FlowHandler) Get(c *gin.Context) {
 
 func (h *FlowHandler) Update(c *gin.Context) {
 	ownerEmail := c.GetString("owner_email")
-	projectID := c.Param("projectId")
+	projectID := c.Param("id")
 	flowID := c.Param("flowId")
 	var req updateFlowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -117,7 +117,7 @@ func (h *FlowHandler) Update(c *gin.Context) {
 
 func (h *FlowHandler) Delete(c *gin.Context) {
 	ownerEmail := c.GetString("owner_email")
-	projectID := c.Param("projectId")
+	projectID := c.Param("id")
 	flowID := c.Param("flowId")
 	err := h.svc.Delete(ownerEmail, projectID, flowID)
 	if err != nil {
