@@ -67,7 +67,6 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
         flowName={flowName}
         isDirty={isDirty}
         saving={saving}
-        onFlowNameChange={name => { setFlowName(name); setIsDirty(true) }}
         onSave={handleSave}
       />
       <div className="flex flex-1 overflow-hidden">
