@@ -8,7 +8,7 @@ ChatBotPlatform is a web app for building chatbot flows. Users log in, create Pr
 
 **What works end-to-end today:** login with JWT auth → projects CRUD → per-project flow CRUD → full-screen React Flow canvas editor with Message Nodes → canvas state persisted to PostgreSQL as JSONB.
 
-**What's next:** Phase 4 — additional node types, more complex flow logic, and the Endpoint tab (chatbot integration/testing).
+**What's next:** Phase 5 — additional node types, more complex flow logic, and the Endpoint tab (chatbot integration/testing).
 
 ---
 
@@ -130,6 +130,7 @@ DELETE /api/projects/:id/flows/:flowId         (auth)    delete flow
 Standalone test package. Run from `integration/` directory.
 
 **File map:**
+- `README.md` — full setup guide: prerequisites (Docker/Node/Go/CGO), quick-start commands, test stack port table, per-test coverage summary, and troubleshooting
 - `Makefile` — `make test` runs Pact then Playwright (fail-fast); `make test-pact` / `make test-e2e` run layers independently
 - `docker-compose.test.yml` — isolated test stack on ports 5433 (postgres), 8081 (backend), 3001 (frontend) with healthchecks
 - `pact/consumer/api.pact.test.ts` — 6 PactV3 consumer interactions (TypeScript/Vitest) covering all 5 API endpoints; generates `pact/pacts/frontend-backend.json`
