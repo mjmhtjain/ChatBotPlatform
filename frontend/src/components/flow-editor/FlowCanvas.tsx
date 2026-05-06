@@ -13,9 +13,17 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import MessageNode from './MessageNode'
+import StartAnchorNode from './StartAnchorNode'
+import EndAnchorNode from './EndAnchorNode'
+import EmptySlotNode from './EmptySlotNode'
 import type { MessageNodeData } from '../../types/flow'
 
-const nodeTypes = { messageNode: MessageNode }
+const nodeTypes = {
+  messageNode: MessageNode,
+  startAnchor: StartAnchorNode,
+  endAnchor: EndAnchorNode,
+  emptySlot: EmptySlotNode,
+}
 
 interface Props {
   nodes: Node[]
