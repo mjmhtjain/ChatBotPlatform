@@ -9,6 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { getFlow, updateFlow } from '../lib/api'
+import { buildInitialChain, isOldFormatFlow } from '../lib/chain'
 import FlowEditorTopBar from '../components/flow-editor/FlowEditorTopBar'
 import NodePalette from '../components/flow-editor/NodePalette'
 import FlowCanvas from '../components/flow-editor/FlowCanvas'
@@ -22,16 +23,21 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
   const [isDirty, setIsDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const { nodes: initNodes, edges: initEdges } = buildInitialChain()
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initEdges)
 
   useEffect(() => {
     getFlow(projectId, flowId)
       .then(flow => {
         setFlowName(flow.name)
-        if (flow.data) {
+        if (flow.data && !isOldFormatFlow(flow.data.nodes ?? [])) {
           setNodes(flow.data.nodes ?? [])
           setEdges(flow.data.edges ?? [])
+        } else {
+          const { nodes, edges } = buildInitialChain()
+          setNodes(nodes)
+          setEdges(edges)
         }
       })
       .catch(err => {
