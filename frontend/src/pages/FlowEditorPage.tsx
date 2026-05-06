@@ -9,7 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { getFlow, updateFlow } from '../lib/api'
-import { buildInitialChain, isOldFormatFlow } from '../lib/chain'
+import { buildInitialChain, shouldResetFlow, sanitizeLoadedNodes } from '../lib/chain'
 import FlowEditorTopBar from '../components/flow-editor/FlowEditorTopBar'
 import NodePalette from '../components/flow-editor/NodePalette'
 import FlowCanvas from '../components/flow-editor/FlowCanvas'
@@ -31,9 +31,9 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
     getFlow(projectId, flowId)
       .then(flow => {
         setFlowName(flow.name)
-        if (flow.data && !isOldFormatFlow(flow.data.nodes ?? [])) {
-          setNodes(flow.data.nodes ?? [])
-          setEdges(flow.data.edges ?? [])
+        if (!shouldResetFlow(flow.data)) {
+          setNodes(sanitizeLoadedNodes(flow.data!.nodes ?? []))
+          setEdges(flow.data!.edges ?? [])
         } else {
           const { nodes, edges } = buildInitialChain()
           setNodes(nodes)

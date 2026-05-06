@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { buildInitialChain, isOldFormatFlow } from './chain'
+import type { ReactFlowJsonObject } from '@xyflow/react'
+import { buildInitialChain, isOldFormatFlow, shouldResetFlow, sanitizeLoadedNodes } from './chain'
 
 describe('buildInitialChain', () => {
   it('returns exactly 3 nodes', () => {
@@ -65,5 +66,96 @@ describe('isOldFormatFlow', () => {
   it('returns false when nodes contain a startAnchor node', () => {
     const nodes = [{ id: '1', type: 'startAnchor', position: { x: 0, y: 0 }, data: {} }]
     expect(isOldFormatFlow(nodes)).toBe(false)
+  })
+})
+
+describe('shouldResetFlow', () => {
+  it('returns true for null', () => {
+    expect(shouldResetFlow(null)).toBe(true)
+  })
+
+  it('returns true for undefined', () => {
+    expect(shouldResetFlow(undefined)).toBe(true)
+  })
+
+  it('returns true when nodes array is empty', () => {
+    const data: ReactFlowJsonObject = { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } }
+    expect(shouldResetFlow(data)).toBe(true)
+  })
+
+  it('returns true when nodes have no startAnchor type', () => {
+    const data: ReactFlowJsonObject = {
+      nodes: [{ id: '1', type: 'messageNode', position: { x: 0, y: 0 }, data: {} }],
+      edges: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+    }
+    expect(shouldResetFlow(data)).toBe(true)
+  })
+
+  it('returns false when nodes include a startAnchor node', () => {
+    const data: ReactFlowJsonObject = {
+      nodes: [{ id: '1', type: 'startAnchor', position: { x: 0, y: 0 }, data: {} }],
+      edges: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+    }
+    expect(shouldResetFlow(data)).toBe(false)
+  })
+})
+
+describe('sanitizeLoadedNodes', () => {
+  it('sets draggable:false and deletable:false on a startAnchor node missing those flags', () => {
+    const nodes = [{ id: '1', type: 'startAnchor', position: { x: 0, y: 0 }, data: {} }]
+    const result = sanitizeLoadedNodes(nodes)
+    expect(result[0].draggable).toBe(false)
+    expect(result[0].deletable).toBe(false)
+  })
+
+  it('sets draggable:false and deletable:false on an endAnchor node missing those flags', () => {
+    const nodes = [{ id: '2', type: 'endAnchor', position: { x: 0, y: 0 }, data: {} }]
+    const result = sanitizeLoadedNodes(nodes)
+    expect(result[0].draggable).toBe(false)
+    expect(result[0].deletable).toBe(false)
+  })
+
+  it('sets draggable:false and deletable:false on an emptySlot node missing those flags', () => {
+    const nodes = [{ id: '3', type: 'emptySlot', position: { x: 0, y: 0 }, data: {} }]
+    const result = sanitizeLoadedNodes(nodes)
+    expect(result[0].draggable).toBe(false)
+    expect(result[0].deletable).toBe(false)
+  })
+
+  it('sets draggable:false and deletable:false on a messageNode for chain integrity', () => {
+    const nodes = [{ id: '4', type: 'messageNode', position: { x: 0, y: 0 }, data: {} }]
+    const result = sanitizeLoadedNodes(nodes)
+    expect(result[0].draggable).toBe(false)
+    expect(result[0].deletable).toBe(false)
+  })
+
+  it('does not mutate the original array', () => {
+    const nodes = [{ id: '1', type: 'startAnchor', position: { x: 0, y: 0 }, data: {} }]
+    const original = nodes[0]
+    const result = sanitizeLoadedNodes(nodes)
+    expect(result).not.toBe(nodes)
+    expect(result[0]).not.toBe(original)
+  })
+})
+
+describe('Round-trip contract', () => {
+  it('nodes from buildInitialChain survive JSON round-trip with type and position intact', () => {
+    const { nodes } = buildInitialChain()
+    const serialized = JSON.parse(JSON.stringify(nodes))
+    for (let i = 0; i < nodes.length; i++) {
+      expect(serialized[i].type).toBe(nodes[i].type)
+      expect(serialized[i].position).toEqual(nodes[i].position)
+    }
+  })
+
+  it('edges from buildInitialChain survive JSON round-trip with source/target intact', () => {
+    const { edges } = buildInitialChain()
+    const serialized = JSON.parse(JSON.stringify(edges))
+    for (let i = 0; i < edges.length; i++) {
+      expect(serialized[i].source).toBe(edges[i].source)
+      expect(serialized[i].target).toBe(edges[i].target)
+    }
   })
 })
