@@ -12,8 +12,5 @@
       "Bash(docker:*)",
       "Bash(go:*)"
     ]
-  },
-  "enabledPlugins": {
-    "superpowers@superpowers-dev": true
   }
 }
