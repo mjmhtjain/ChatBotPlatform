@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ReactFlowProvider,
@@ -9,7 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { getFlow, updateFlow } from '../lib/api'
-import { buildInitialChain, isOldFormatFlow } from '../lib/chain'
+import { buildInitialChain, isOldFormatFlow, applyGrowthRule } from '../lib/chain'
 import FlowEditorTopBar from '../components/flow-editor/FlowEditorTopBar'
 import NodePalette from '../components/flow-editor/NodePalette'
 import FlowCanvas from '../components/flow-editor/FlowCanvas'
@@ -26,6 +26,12 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
   const { nodes: initNodes, edges: initEdges } = buildInitialChain()
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initEdges)
+
+  // Keep refs to current nodes/edges for use inside callbacks
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  useEffect(() => { nodesRef.current = nodes }, [nodes])
+  useEffect(() => { edgesRef.current = edges }, [edges])
 
   useEffect(() => {
     getFlow(projectId, flowId)
@@ -60,6 +66,18 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
     }
   }, [rfInstance, projectId, flowId, flowName])
 
+  const handleSlotDrop = useCallback((slotId: string, nodeType: string) => {
+    const currentNodes = nodesRef.current
+    const currentEdges = edgesRef.current
+    const nodeData = nodeType === 'messageNode' ? { message: '' } : {}
+    const { nodes: newNodes, edges: newEdges } = applyGrowthRule(
+      currentNodes, currentEdges, slotId, nodeType, nodeData
+    )
+    setNodes(newNodes)
+    setEdges(newEdges)
+    setIsDirty(true)
+  }, [setNodes, setEdges])
+
   function updateNodeData(nodeId: string, data: Record<string, unknown>) {
     setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n))
     setSelectedNode(prev => prev?.id === nodeId ? { ...prev, data: { ...prev.data, ...data } } : prev)
@@ -84,6 +102,7 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
           onEdgesChange={onEdgesChange}
           onDirty={() => setIsDirty(true)}
           onNodeSelect={setSelectedNode}
+          onSlotDrop={handleSlotDrop}
         />
         <NodeConfigPanel node={selectedNode} onUpdateData={updateNodeData} />
       </div>

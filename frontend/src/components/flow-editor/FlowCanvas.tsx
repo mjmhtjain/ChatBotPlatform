@@ -4,7 +4,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  useReactFlow,
   type Node,
   type Edge,
   type OnNodesChange,
@@ -16,7 +15,6 @@ import MessageNode from './MessageNode'
 import StartAnchorNode from './StartAnchorNode'
 import EndAnchorNode from './EndAnchorNode'
 import EmptySlotNode from './EmptySlotNode'
-import type { MessageNodeData } from '../../types/flow'
 
 const nodeTypes = {
   messageNode: MessageNode,
@@ -32,29 +30,17 @@ interface Props {
   onEdgesChange: OnEdgesChange
   onDirty: () => void
   onNodeSelect: (node: Node | null) => void
+  onSlotDrop: (slotId: string, nodeType: string) => void
 }
 
 export default function FlowCanvas({
-  nodes, edges, onNodesChange, onEdgesChange, onDirty, onNodeSelect,
+  nodes, edges, onNodesChange, onEdgesChange, onDirty, onNodeSelect, onSlotDrop,
 }: Props) {
-  const rfInstance = useReactFlow()
-
+  // Reject drops on the blank canvas — only EmptySlotNode handles drops
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    const nodeType = e.dataTransfer.getData('application/reactflow-nodetype')
-    if (!nodeType) return
-
-    const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY })
-    const newNode: Node = {
-      id: crypto.randomUUID(),
-      type: nodeType,
-      position,
-      data: nodeType === 'messageNode' ? { message: '' } satisfies MessageNodeData : {},
-    }
-
-    onNodesChange([{ type: 'add', item: newNode }])
-    onDirty()
-  }, [rfInstance, onNodesChange, onDirty])
+    // intentionally do nothing — drops are handled by EmptySlotNode
+  }, [])
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -80,10 +66,17 @@ export default function FlowCanvas({
     onDirty()
   }, [onEdgesChange, onDirty])
 
+  // Inject onSlotDrop callback into emptySlot node data
+  const nodesWithSlotDrop = nodes.map(n =>
+    n.type === 'emptySlot'
+      ? { ...n, data: { ...n.data, onSlotDrop } }
+      : n
+  )
+
   return (
     <div className="flex-1 h-full" onDrop={onDrop} onDragOver={onDragOver}>
       <ReactFlow
-        nodes={nodes}
+        nodes={nodesWithSlotDrop}
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
