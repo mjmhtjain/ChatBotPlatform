@@ -7,6 +7,7 @@ interface EmptySlotData extends Record<string, unknown> {
 
 export default function EmptySlotNode({ id, data }: NodeProps) {
   const [highlighted, setHighlighted] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -31,24 +32,39 @@ export default function EmptySlotNode({ id, data }: NodeProps) {
 
   return (
     <div
-      className="flex items-center justify-center select-none"
-      style={{
-        width: 200,
-        height: 60,
-        border: highlighted ? '2px dashed #3b82f6' : '2px dashed #9ca3af',
-        borderRadius: 8,
-        background: highlighted ? '#eff6ff' : '#f9fafb',
-        transition: 'border-color 0.15s, background 0.15s',
-      }}
+      className="relative flex items-center justify-center select-none"
+      style={{ width: 64, height: 64 }}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      <Handle type="target" position={Position.Left} />
-      <span className={highlighted ? 'text-blue-500 text-sm font-medium' : 'text-gray-500 text-sm font-medium'}>
-        + Drop node here
-      </span>
-      <Handle type="source" position={Position.Right} />
+      <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
+      <div
+        className="flex items-center justify-center rounded-full transition-colors"
+        style={{
+          width: 64,
+          height: 64,
+          border: highlighted ? '2px dashed #3b82f6' : '2px dashed #9ca3af',
+          background: highlighted ? '#eff6ff' : '#f9fafb',
+          color: highlighted ? '#3b82f6' : '#9ca3af',
+          fontSize: 28,
+          lineHeight: 1,
+          fontWeight: 500,
+        }}
+      >
+        +
+      </div>
+      <Handle type="source" position={Position.Right} style={{ background: 'transparent', border: 'none' }} />
+      {hovered && (
+        <div
+          className="absolute z-10 px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap pointer-events-none"
+          style={{ bottom: 'calc(100% + 6px)', left: '50%', transform: 'translateX(-50%)' }}
+        >
+          Drop node here
+        </div>
+      )}
     </div>
   )
 }

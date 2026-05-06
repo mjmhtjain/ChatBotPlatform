@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import EmptySlotNode from './EmptySlotNode'
 
 const Slot = EmptySlotNode as unknown as (props: { id?: string; data?: Record<string, unknown> }) => JSX.Element
@@ -10,8 +10,9 @@ vi.mock('@xyflow/react', () => ({
 }))
 
 describe('EmptySlotNode', () => {
-  it('renders text matching /drop/i', () => {
-    render(<Slot id="test" data={{}} />)
+  it('shows "Drop node here" tooltip on hover', () => {
+    const { container } = render(<Slot id="test" data={{}} />)
+    fireEvent.mouseEnter(container.firstChild as HTMLElement)
     expect(screen.getByText(/drop/i)).toBeInTheDocument()
   })
 })

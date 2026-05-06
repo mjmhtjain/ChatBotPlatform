@@ -39,14 +39,14 @@ export function buildInitialChain(): { nodes: Node[]; edges: Edge[] } {
       id: 'edge-start-empty',
       source: startId,
       target: emptyId,
-      type: 'smoothstep',
+      type: 'straight',
       animated: false,
     },
     {
       id: 'edge-empty-end',
       source: emptyId,
       target: endId,
-      type: 'smoothstep',
+      type: 'straight',
       animated: false,
     },
   ]
@@ -61,6 +61,10 @@ export function isOldFormatFlow(nodes: Node[]): boolean {
 export function shouldResetFlow(flowData: ReactFlowJsonObject | null | undefined): boolean {
   if (!flowData) return true
   return isOldFormatFlow(flowData.nodes ?? [])
+}
+
+export function sanitizeLoadedEdges(edges: Edge[]): Edge[] {
+  return edges.map(edge => ({ ...edge, type: 'straight' }))
 }
 
 export function sanitizeLoadedNodes(nodes: Node[]): Node[] {
@@ -146,7 +150,7 @@ export function applyGrowthRule(
       id: `edge-${predecessorId}-${newEmptyBeforeId}`,
       source: predecessorId,
       target: newEmptyBeforeId,
-      type: 'smoothstep',
+      type: 'straight',
       animated: false,
     })
   }
@@ -155,7 +159,7 @@ export function applyGrowthRule(
     id: `edge-${newEmptyBeforeId}-${newNodeId}`,
     source: newEmptyBeforeId,
     target: newNodeId,
-    type: 'smoothstep',
+    type: 'straight',
     animated: false,
   })
 
@@ -163,7 +167,7 @@ export function applyGrowthRule(
     id: `edge-${newNodeId}-${newEmptyAfterId}`,
     source: newNodeId,
     target: newEmptyAfterId,
-    type: 'smoothstep',
+    type: 'straight',
     animated: false,
   })
 
@@ -172,7 +176,7 @@ export function applyGrowthRule(
       id: `edge-${newEmptyAfterId}-${successorId}`,
       source: newEmptyAfterId,
       target: successorId,
-      type: 'smoothstep',
+      type: 'straight',
       animated: false,
     })
   }
@@ -248,13 +252,13 @@ export function applyCollapseRule(
       id: crypto.randomUUID(),
       source: predecessorId,
       target: mergedEmpty.id,
-      type: 'smoothstep',
+      type: 'straight',
     },
     {
       id: crypto.randomUUID(),
       source: mergedEmpty.id,
       target: successorId,
-      type: 'smoothstep',
+      type: 'straight',
     },
   ]
 

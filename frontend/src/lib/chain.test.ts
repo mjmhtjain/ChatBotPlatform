@@ -44,10 +44,10 @@ describe('buildInitialChain', () => {
     expect(edges[1].target).toBe(end.id)
   })
 
-  it('edges have type smoothstep and animated false', () => {
+  it('edges have type straight and animated false', () => {
     const { edges } = buildInitialChain()
     for (const edge of edges) {
-      expect(edge.type).toBe('smoothstep')
+      expect(edge.type).toBe('straight')
       expect(edge.animated).toBe(false)
     }
   })
