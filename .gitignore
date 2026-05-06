@@ -32,7 +32,7 @@ go.work.sum
 # .vscode/
 
 # claude settings
-.claude/settings.local.json
+.claude/*
 docs/*
 .superpowers/
 .doc/*
