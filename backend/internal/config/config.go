@@ -7,6 +7,7 @@ type Config struct {
 	AdminPassword string
 	JWTSecret     string
 	Port          string
+	CORSOrigin    string
 
 	PostgresHost     string
 	PostgresPort     string
@@ -21,6 +22,7 @@ func Load() Config {
 		AdminPassword: getEnv("ADMIN_PASSWORD", "password"),
 		JWTSecret:     getEnv("JWT_SECRET", "dev-secret-change-in-prod"),
 		Port:          getEnv("PORT", "8080"),
+		CORSOrigin:    getEnv("CORS_ORIGIN", "http://localhost:3000"),
 
 		PostgresHost:     getEnv("POSTGRES_HOST", "localhost"),
 		PostgresPort:     getEnv("POSTGRES_PORT", "5432"),

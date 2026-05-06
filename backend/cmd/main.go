@@ -30,7 +30,7 @@ func main() {
 	flowHandler := handlers.NewFlowHandler(flowSvc)
 
 	r := gin.Default()
-	r.Use(middleware.CORS("http://localhost:3000"))
+	r.Use(middleware.CORS(cfg.CORSOrigin))
 
 	router.Setup(r, authHandler, projectHandler, flowHandler, cfg.JWTSecret)
 

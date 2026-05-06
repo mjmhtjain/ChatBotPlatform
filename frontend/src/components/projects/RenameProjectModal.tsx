@@ -32,7 +32,7 @@ export default function RenameProjectModal({ project, onClose, onRenamed }: Prop
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div data-testid="modal-overlay" className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Rename Project</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

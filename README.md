@@ -4,11 +4,13 @@ A web application for building, testing, and publishing chatbot flows.
 
 ## Status
 
-| Component | Status |
-|-----------|--------|
-| Frontend (login page) | Done |
-| Backend (Go + Gin, login endpoint) | Done |
-| Database (PostgreSQL) | Planned |
+| Phase | Status |
+|-------|--------|
+| Auth (login + JWT) | ✅ Done |
+| Projects CRUD | ✅ Done |
+| Flow Builder (React Flow canvas, JSONB persistence) | ✅ Done |
+| Integration Tests (Pact contract + Playwright E2E) | ✅ Done |
+| Additional Node Types & Endpoint Tab | 🔜 Planned |
 
 ---
 
@@ -61,14 +63,18 @@ docker compose down
 
 All backend config lives in `backend/.env` (gitignored). Use `backend/.env.example` as the template.
 
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Port the backend API listens on (default: `8080`) |
-| `ADMIN_EMAIL` | Admin user email for login |
-| `ADMIN_PASSWORD` | Admin user password for login |
-| `JWT_SECRET` | Secret for signing JWT tokens |
-| `FRONTEND_PORT` | Port the frontend is served on (default: `3000`) |
-| `BACKEND_PORT` | Port the backend is exposed on (default: `8080`) |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Port the backend API listens on | `8080` |
+| `ADMIN_EMAIL` | Admin user email for login | `user@gmail.com` |
+| `ADMIN_PASSWORD` | Admin user password for login | `password` |
+| `JWT_SECRET` | Secret for signing JWT tokens | `dev-secret-change-in-prod` |
+| `CORS_ORIGIN` | Allowed CORS origin for the frontend | `http://localhost:3000` |
+| `POSTGRES_HOST` | PostgreSQL host | `localhost` |
+| `POSTGRES_PORT` | PostgreSQL port | `5432` |
+| `POSTGRES_USER` | PostgreSQL user | `chatbot` |
+| `POSTGRES_PASSWORD` | PostgreSQL password | `chatbot` |
+| `POSTGRES_DB` | PostgreSQL database name | `chatbot` |
 
 ---
 
@@ -84,39 +90,59 @@ ChatBotPlatform/
     cmd/main.go               # entry point
     internal/
       config/                 # env var loading
-      handlers/               # HTTP handlers
-      middleware/             # CORS
+      database/               # GORM + PostgreSQL connection, AutoMigrate
+      handlers/               # HTTP handlers + consumer-side interfaces
+      middleware/             # CORS, JWT auth
+      models/                 # Project, Flow structs
       router/                 # route registration
-      services/               # business logic (auth, JWT)
+      services/               # business logic (auth, projects, flows)
+    tests/pact/               # Pact provider verification tests
   frontend/                   # React + TypeScript + Vite (served by nginx)
-    .doc/                     # frontend-specific docs
     Dockerfile
     src/
-      pages/
-      lib/
-      store/
+      pages/                  # LoginPage, ProjectsPage, ProjectDetailPage, FlowEditorPage
+      components/             # layout, projects, flows, flow-editor
+      lib/                    # Axios instance, JWT helpers
+      types/                  # shared TypeScript types
+  integration/                # Contract + E2E tests (isolated Docker stack)
+    Makefile                  # make test / test-pact / test-e2e
+    docker-compose.test.yml   # test stack on ports 5433/8081/3001
+    pact/consumer/            # TypeScript Pact consumer tests
+    pact/pacts/               # committed contract JSON
+    e2e/                      # Playwright specs
 ```
 
 ---
 
 ## Running Tests
 
-### Frontend
+### Frontend unit tests
 
 ```sh
 cd frontend
 npm test
 ```
 
-### Backend
+### Backend unit tests
 
 ```sh
 cd backend
 go test ./...
 ```
 
----
+### Integration tests (Pact + Playwright)
 
-## Development Plan
+See **[integration/README.md](integration/README.md)** for full setup and usage. Quick start:
 
-See [.doc/PLAN.md](.doc/PLAN.md) for the full architecture, data models, API design, and phased implementation roadmap.
+```sh
+cd integration
+npm install
+make test        # runs Pact contract tests then Playwright E2E
+```
+
+Individual layers:
+
+```sh
+make test-pact   # contract tests only (Pact consumer + provider)
+make test-e2e    # Playwright E2E only (spins up Docker test stack)
+```

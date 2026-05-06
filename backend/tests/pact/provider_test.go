@@ -31,9 +31,10 @@ func TestPactProvider(t *testing.T) {
 
 	authSvc := services.NewAuthService(cfg.AdminEmail, cfg.AdminPassword, cfg.JWTSecret)
 	projectSvc := services.NewProjectService(db)
+	flowSvc := services.NewFlowService(db)
 
 	r := gin.New()
-	router.Setup(r, handlers.NewAuthHandler(authSvc), handlers.NewProjectHandler(projectSvc), cfg.JWTSecret)
+	router.Setup(r, handlers.NewAuthHandler(authSvc), handlers.NewProjectHandler(projectSvc), handlers.NewFlowHandler(flowSvc), cfg.JWTSecret)
 
 	srv := httptest.NewServer(r)
 	defer srv.Close()

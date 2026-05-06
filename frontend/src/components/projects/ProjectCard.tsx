@@ -13,6 +13,7 @@ export default function ProjectCard({ project, onRename, onDelete }: Props) {
   return (
     <div
       onClick={() => navigate(`/projects/${project.id}`)}
+      data-testid="project-card"
       className="group relative bg-white border border-gray-200 rounded-xl p-4 aspect-square flex flex-col justify-between hover:shadow-md transition-shadow cursor-pointer"
     >
       {/* Actions — visible on hover */}
