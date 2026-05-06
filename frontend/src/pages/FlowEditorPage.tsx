@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ReactFlowProvider,
@@ -9,7 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { getFlow, updateFlow } from '../lib/api'
-import { buildInitialChain, isOldFormatFlow, applyGrowthRule } from '../lib/chain'
+import { buildInitialChain, isOldFormatFlow, applyGrowthRule, applyCollapseRule } from '../lib/chain'
 import FlowEditorTopBar from '../components/flow-editor/FlowEditorTopBar'
 import NodePalette from '../components/flow-editor/NodePalette'
 import FlowCanvas from '../components/flow-editor/FlowCanvas'
@@ -84,6 +84,30 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
     setIsDirty(true)
   }
 
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    const { nodes: newNodes, edges: newEdges } = applyCollapseRule(nodes, edges, nodeId)
+    setNodes(newNodes)
+    setEdges(newEdges)
+    setSelectedNode(null)
+    setIsDirty(true)
+  }, [nodes, edges, setNodes, setEdges])
+
+  const nodesWithCallbacks = useMemo(() =>
+    nodes.map(n => n.type === 'messageNode'
+      ? { ...n, data: { ...n.data, onDelete: () => handleNodeDelete(n.id) } }
+      : n
+    ), [nodes, handleNodeDelete])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNode?.type === 'messageNode') {
+        handleNodeDelete(selectedNode.id)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [selectedNode, handleNodeDelete])
+
   return (
     <div className="flex flex-col h-screen">
       <FlowEditorTopBar
@@ -96,7 +120,7 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
       <div className="flex flex-1 overflow-hidden">
         <NodePalette />
         <FlowCanvas
-          nodes={nodes}
+          nodes={nodesWithCallbacks}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}

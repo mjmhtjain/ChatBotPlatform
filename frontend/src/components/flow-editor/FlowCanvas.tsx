@@ -83,6 +83,7 @@ export default function FlowCanvas({
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
+        deleteKeyCode={null}
         fitView
       >
         <Background />
