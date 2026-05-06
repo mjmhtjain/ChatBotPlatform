@@ -1,6 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import MessageNode from './MessageNode'
+import MessageNodeImpl from './MessageNode'
+
+const MessageNode = MessageNodeImpl as unknown as (props: {
+  id?: string
+  data: { message: string; onDelete?: () => void }
+  selected?: boolean
+  type?: string
+}) => JSX.Element
 
 vi.mock('@xyflow/react', () => ({
   Handle: () => null,
@@ -11,12 +18,7 @@ describe('MessageNode', () => {
   const baseProps = {
     id: 'test-node',
     selected: false,
-    isConnectable: true,
-    zIndex: 0,
     type: 'messageNode' as const,
-    xPos: 0,
-    yPos: 0,
-    dragging: false,
   }
 
   it('renders a ✕ button when data.onDelete is provided and node is hovered', async () => {
