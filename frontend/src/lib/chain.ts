@@ -1,4 +1,6 @@
-import type { Node, Edge } from '@xyflow/react'
+import type { Node, Edge, ReactFlowJsonObject } from '@xyflow/react'
+
+const STRUCTURAL_NODE_TYPES = new Set(['startAnchor', 'endAnchor', 'emptySlot', 'messageNode'])
 
 export function buildInitialChain(): { nodes: Node[]; edges: Edge[] } {
   const startId = 'chain-start'
@@ -54,6 +56,20 @@ export function buildInitialChain(): { nodes: Node[]; edges: Edge[] } {
 
 export function isOldFormatFlow(nodes: Node[]): boolean {
   return !nodes.some(node => node.type === 'startAnchor')
+}
+
+export function shouldResetFlow(flowData: ReactFlowJsonObject | null | undefined): boolean {
+  if (!flowData) return true
+  return isOldFormatFlow(flowData.nodes ?? [])
+}
+
+export function sanitizeLoadedNodes(nodes: Node[]): Node[] {
+  return nodes.map(node => {
+    if (STRUCTURAL_NODE_TYPES.has(node.type ?? '')) {
+      return { ...node, draggable: false, deletable: false }
+    }
+    return { ...node }
+  })
 }
 
 export function applyGrowthRule(
