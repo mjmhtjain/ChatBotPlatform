@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ReactFlowProvider,
@@ -9,6 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import { getFlow, updateFlow } from '../lib/api'
+import { buildInitialChain, applyGrowthRule, applyCollapseRule, shouldResetFlow, sanitizeLoadedNodes, sanitizeLoadedEdges } from '../lib/chain'
 import FlowEditorTopBar from '../components/flow-editor/FlowEditorTopBar'
 import NodePalette from '../components/flow-editor/NodePalette'
 import FlowCanvas from '../components/flow-editor/FlowCanvas'
@@ -22,16 +23,27 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
   const [isDirty, setIsDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const { nodes: initNodes, edges: initEdges } = buildInitialChain()
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(initNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initEdges)
+
+  // Keep refs to current nodes/edges for use inside callbacks
+  const nodesRef = useRef(nodes)
+  const edgesRef = useRef(edges)
+  useEffect(() => { nodesRef.current = nodes }, [nodes])
+  useEffect(() => { edgesRef.current = edges }, [edges])
 
   useEffect(() => {
     getFlow(projectId, flowId)
       .then(flow => {
         setFlowName(flow.name)
-        if (flow.data) {
-          setNodes(flow.data.nodes ?? [])
-          setEdges(flow.data.edges ?? [])
+        if (!shouldResetFlow(flow.data)) {
+          setNodes(sanitizeLoadedNodes(flow.data!.nodes ?? []))
+          setEdges(sanitizeLoadedEdges(flow.data!.edges ?? []))
+        } else {
+          const { nodes, edges } = buildInitialChain()
+          setNodes(nodes)
+          setEdges(edges)
         }
       })
       .catch(err => {
@@ -54,11 +66,47 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
     }
   }, [rfInstance, projectId, flowId, flowName])
 
+  const handleSlotDrop = useCallback((slotId: string, nodeType: string) => {
+    const currentNodes = nodesRef.current
+    const currentEdges = edgesRef.current
+    const nodeData = nodeType === 'messageNode' ? { message: '' } : {}
+    const { nodes: newNodes, edges: newEdges } = applyGrowthRule(
+      currentNodes, currentEdges, slotId, nodeType, nodeData
+    )
+    setNodes(newNodes)
+    setEdges(newEdges)
+    setIsDirty(true)
+  }, [setNodes, setEdges])
+
   function updateNodeData(nodeId: string, data: Record<string, unknown>) {
     setNodes(nds => nds.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n))
     setSelectedNode(prev => prev?.id === nodeId ? { ...prev, data: { ...prev.data, ...data } } : prev)
     setIsDirty(true)
   }
+
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    const { nodes: newNodes, edges: newEdges } = applyCollapseRule(nodes, edges, nodeId)
+    setNodes(newNodes)
+    setEdges(newEdges)
+    setSelectedNode(null)
+    setIsDirty(true)
+  }, [nodes, edges, setNodes, setEdges])
+
+  const nodesWithCallbacks = useMemo(() =>
+    nodes.map(n => n.type === 'messageNode'
+      ? { ...n, data: { ...n.data, onDelete: () => handleNodeDelete(n.id) } }
+      : n
+    ), [nodes, handleNodeDelete])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNode?.type === 'messageNode') {
+        handleNodeDelete(selectedNode.id)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [selectedNode, handleNodeDelete])
 
   return (
     <div className="flex flex-col h-screen">
@@ -72,12 +120,13 @@ function FlowEditorInner({ projectId, flowId }: { projectId: string; flowId: str
       <div className="flex flex-1 overflow-hidden">
         <NodePalette />
         <FlowCanvas
-          nodes={nodes}
+          nodes={nodesWithCallbacks}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onDirty={() => setIsDirty(true)}
           onNodeSelect={setSelectedNode}
+          onSlotDrop={handleSlotDrop}
         />
         <NodeConfigPanel node={selectedNode} onUpdateData={updateNodeData} />
       </div>
