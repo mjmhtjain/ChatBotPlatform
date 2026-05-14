@@ -10,7 +10,11 @@
       "Bash(gh:*)",
       "Bash(npm:*)",
       "Bash(docker:*)",
-      "Bash(go:*)"
+      "Bash(go:*)",
+      "Bash(curl -sf:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx playwright:*)"
     ]
   }
 }
